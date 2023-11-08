@@ -1,0 +1,74 @@
+---
+title: "Populated places dataset"
+author: "Florent Bédécarrats"
+format:
+  html:
+    toc: true
+    output-file: index.html
+    embed-resources: true
+    standalone: true
+    code-fold: true
+execute:
+  warning: false
+  error: false
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Introduction
+
+Ce notebook propose une exploration rapide du jeu de donnée intitulé Madagascar - Populated Places et diffusé sur <https://data.humdata.org/fr/dataset/madagascar-settlements>.
+
+Les métadonnées proposent le descriptif suivant :
+
+> Madagascar place points. Source: National Geospatial-Intelligence Agency, Data Provider: University of Georgia - ITOS, Data Distributor: Geographic Information Support Team (GIST), Publication Date:2007-03-07. \> P-codes and administrative boundary names added by UN OCHA ROSA, based on BNGRC (National Disaster Management Office) data.
+
+Voir la description des jeux de données COD sur <https://cod.unocha.org/>.
+
+
+## Acquisition des données
+
+On charge les librairies requises et obtient les données et on en sort une description technique.
+
+```{r}
+# Load required librairies
+library(tidyverse)
+library(sf)
+library(tmap)
+
+# Download data if not present
+my_url <- "https://data.humdata.org/dataset/57202386-65f8-426f-8f51-be10c9f7c6ae/resource/09cc9db2-2aa7-4301-91b7-ae87f9f81c85/download/mdg_pplp_places_nga_ocha.zip"
+my_dest <- "data/mdg_pplp_places_nga_ocha.zip"
+if (!file.exists(my_dest)) {
+  dir.create("data")
+  download.file(my_url, my_dest)
+  unzip(my_dest, exdir = "data")
+}
+
+# Load data
+pop_places <- st_read("data/mdg_pplp_places_NGA_OCHA.shp", quiet = TRUE)
+str(pop_places)
+```
+
+## Représentation des données sur la commune d'Androy
+ 
+ On zoome sur une commune pour laquelle on dispose d'une autre source quant à la localisation des localités pour comparer la complétude.
+ 
+```{r}
+#| fig-cap: "Contenu du jeu populated places filtré sur la commune d'Androy (Cliquer sur un point pour lire ses attributs)"
+
+# On filtre sur la commune
+pop_pl_androy <- pop_places %>%
+  filter(COMMUNE == "Androy") %>%
+  select(-SOURCE)
+
+# On sort la carte
+
+tmap_mode("view")
+pop_pl_androy %>%
+  tm_shape() +
+  tm_dots() + 
+  tm_basemap("OpenStreetMap")
+```
+ 
